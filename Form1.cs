@@ -116,4 +116,83 @@ namespace Projekti2___Klienti
             }
         }
 
+
+       private void btnImportKeys_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog opf = new OpenFileDialog();
+            if (opf.ShowDialog() == DialogResult.OK)
+            {
+                string path = opf.FileName;
+                String strPrivateParameters = "";
+                StreamReader sr = new StreamReader(path);
+                strPrivateParameters = sr.ReadToEnd();
+                sr.Close();
+                try
+                {
+                    // tentojme te ia japim filen e lexuar objektit RSA (nese nuk eshte file i mire,
+                    // kapet gabimi nga Catch, pra nese nuk eshte file xml qe permban celesa RSA)
+                    objRSAClient.FromXmlString(strPrivateParameters);
+                    // meqe ka mundesi qe te importohet vetem celesei publik, atehere pyesim a 
+                    // permban ai xml file tagun <D> (celesin privat), meqe ky gabim nuk kapet 
+                    // nga kodi i siperm
+                    if (!strPrivateParameters.Contains("<D>"))
+                    {
+                        throw new Exception("Imported Public Key");
+                    }
+                    keysImported = true;
+                    try
+                    {
+                        // krijojme lidhjen me serverin
+                        client = new TcpClient();
+                        client.Connect("127.0.0.1", 9999);
+                        // ===========================SHKEMBIMI I CELESAVE===========================
+                        // =================================FILLIMI==================================
+                        // i bejme eksport tek objParameters vetem tagjet per celes publik
+                        RSAParameters objParameters = objRSAClient.ExportParameters(false);
+                        string publicKey = Convert.ToBase64String(objParameters.Exponent);
+                        publicKey += "#" + Convert.ToBase64String(objParameters.Modulus);
+
+                        Stream stream = client.GetStream();
+                        // konvertojme celesin publik ne byte per ta derguar tek serveri
+                        byte[] byteRequest = Encoding.ASCII.GetBytes(publicKey);
+                        // i dergojme serverit celesin tone publik
+                        stream.Write(byteRequest, 0, byteRequest.Length);
+
+                        byte[] byteKeysResponse = new byte[1024];
+                        // gjatesia e stringut qe kthehet nga serveri
+                        int keysResponseSize = stream.Read(byteKeysResponse, 0, 1024);
+                        string serversKeys = "";
+                        for (int i = 0; i < keysResponseSize; i++)
+                        {
+                            serversKeys += Convert.ToChar(byteKeysResponse[i]);
+                        }
+                        // ndajme modulusin dhe eksponentin ne nje string array
+                        String[] serversKeysArray = serversKeys.Split('#');
+                        // ia shoqerojme objektit RSA (per mesazhet qe do tia dergojme serverit) 
+                        // celesin publik te serverit
+                        RSAParameters objParametersServer = objRSAServer.ExportParameters(true);
+                        objParametersServer.Exponent = Convert.FromBase64String(serversKeysArray[0]);
+                        objParametersServer.Modulus = Convert.FromBase64String(serversKeysArray[1]);
+                        objRSAServer.ImportParameters(objParametersServer);
+                        // ==================================FUNDI===================================
+                        // ===========================SHKEMBIMI I CELESAVE===========================
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error..... " + ex.StackTrace);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Please import valid RSA keys!", "Error");
+                }
+            }
+        }
+
+        private void importPng_Click(object sender, EventArgs e)
+        {
+            btnImportKeys.PerformClick();
+        }
+    }
+}
      
