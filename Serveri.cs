@@ -1,3 +1,40 @@
+ private void btnStopServer_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!serverStarted)
+                    return;
+                // ndaloje serverin
+                clientSocket.Close();
+                objTcpListener.Stop();
+                serverStarted = false;
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("Error..... " + ex.StackTrace);
+            }
+        }
+
+        // Kur te preket 'X' per te mbyllur formen shkeputi te gjitha lidhjet se pari dhe pastaj mbylle
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            try
+            {
+                // ndaloje serverin
+                clientSocket.Close();
+                objTcpListener.Stop();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error..... " + ex.StackTrace);
+            }
+            Application.Exit();
+        }
+
+
+
+
+
 private void btnImportKey_Click(object sender, EventArgs e)
         {
             OpenFileDialog opf = new OpenFileDialog();
