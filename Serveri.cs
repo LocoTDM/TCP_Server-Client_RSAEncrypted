@@ -39,6 +39,20 @@ namespace Projekti2___Serveri
             return pergjigja;
         }
 
+        public string PickACard()
+        {
+            Random rand = new Random();
+            String[] cards = {"Ace", "Two", "Three","Four","Five","Six","Seven","Eight","Nine","Ten","Jack","Queen","King","THE JOKER"};
+            String[] suits = {"Spades", "Hearts", "Diamonds", "Clubs"};
+            int cardSelection = rand.Next(0, 14);
+            int suitSelection = rand.Next(0, 4);
+            string pergjigja = "Your card: " + cards[cardSelection];
+            if(cardSelection!=13)
+            {
+                pergjigja += " of " + suits[suitSelection];
+            }
+            return pergjigja;
+        }
         
         public Form1()
         {
@@ -186,6 +200,12 @@ namespace Projekti2___Serveri
                             break;
                         case "rollthedice":
                             toSend = RollTheDice();
+                            break;
+                        case "pickacard":
+                            toSend = PickACard();
+                            break;
+                        case "help":
+                            toSend = "Requests: IPAddress, Protocol, LocalEndPoint, Time, RollTheDices and PickACard";
                             break;
                         
                         default:
